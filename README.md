@@ -1,4 +1,4 @@
-# Mechanistic Ocular Modeling: Vitreous Anti-VEGF Kinetics
+# Mechanistic Ocular Modelling: Vitreous Anti-VEGF Kinetics
 
 A Python simulation modeling the pharmacokinetics and clearance rates of intravitreal ranibizumab injections using ordinary differential equations (ODEs). 
 
