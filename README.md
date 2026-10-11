@@ -6,12 +6,12 @@ This model transitions away from standard data-driven statistical models to impl
 
 ## The Advanced Calculus Framework
 
-The spatial distribution and concentration decay of retinal oxygen ($C$) over space ($x$) and time ($t$) is modeled via a non-linear **Reaction-Diffusion Partial Differential Equation**:
+The spatial distribution and concentration decay of retinal oxygen ($C$) over space ($x$) and time ($t$) is modelled via a non-linear **Reaction-Diffusion Partial Differential Equation**:
 
 $$ \frac{\partial C}{\partial t} = D \frac{\partial^2 C}{\partial x^2} - \frac{V_{max} C}{K_m + C} $$
 
 ### Breakdown of the Mathematical Logic:
-* **$\frac{\partial C}{\partial t}$ (Temporal Derivative):** Calculates the localized rate of change of oxygen tension across time.
+* **$\frac{\partial C}{\partial t}$ (Temporal Derivative):** Calculates the localised rate of change of oxygen tension across time.
 * **$D \frac{\partial^2 C}{\partial x^2}$ (The Spatial Diffusion Curvature):** Governed by Fick's Second Law, using a 1D Laplacian to map how oxygen naturally diffuses away from high-concentration capillary beds (the choroid matrix) down across the geometric layers of tissue.
 * **$\frac{V_{max} C}{K_m + C}$ (Nonlinear Michaelis-Menten Kinetics):** Models the metabolic consumption mechanics of highly active outer-segment retinal photoreceptors.
 
@@ -23,5 +23,5 @@ To solve the PDE domain, explicit physical boundary constraints are defined to m
    $$ \frac{\partial C}{\partial x} \Big|_{x=L} = 0 $$
 
 ## Implementation Architecture
-The code applies an explicit finite-difference discretization model over space and time. It evaluates numerical stability limits according to the Courant-Friedrichs-Lewy condition:  
+The code applies an explicit finite-difference discretisation model over space and time. It evaluates numerical stability limits according to the Courant-Friedrichs-Lewy condition:  
 $$\Delta t \le \frac{\Delta x^2}{2D}$$
