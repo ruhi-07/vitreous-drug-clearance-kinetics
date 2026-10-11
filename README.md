@@ -1,6 +1,6 @@
 # Advanced Mechanistic Ophthalmology: Retinal Tissue Oxygenation Model
 
-A computational framework utilizing a **Partial Differential Equation (PDE)** to simulate spatial-temporal oxygen transport and metabolic consumption profiles within the physical layers of the human retina. 
+A computational framework utilising a **Partial Differential Equation (PDE)** to simulate spatial-temporal oxygen transport and metabolic consumption profiles within the physical layers of the human retina. 
 
 This model transitions away from standard data-driven statistical models to implement physics-governed biomathematical systems—directly mapping tissue mechanics to clinical ischemic environments.
 
