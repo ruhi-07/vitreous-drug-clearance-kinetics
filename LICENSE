@@ -1,0 +1,12 @@
+# Python cache and virtual environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Local outputs
+*.png
+*.pdf
+
+# OS files
+.DS_Store

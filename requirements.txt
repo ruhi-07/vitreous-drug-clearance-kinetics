@@ -1,0 +1,135 @@
+"""Minimal 1D transport model for an ocular tissue-like domain.
+
+This script solves a simplified diffusion/clearance problem in a single spatial
+coordinate. The implementation is intentionally compact and readable so it can be
+used as a baseline for further scientific or educational development.
+"""
+
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+def solve_transport(
+    length: float = 0.025,
+    nx: int = 200,
+    diffusion_coefficient: float = 2.0e-5,
+    clearance_rate: float = 1.2e-4,
+    half_saturation: float = 1.0e-6,
+    source_value: float = 6.5e-5,
+    dt: float = 0.1,
+    steps: int = 2000,
+    initial_value: float = 5.0e-5,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Advance a concentration field in time using an explicit finite-difference scheme."""
+    if nx < 3:
+        raise ValueError("nx must be at least 3 to include interior points.")
+
+    dx = length / (nx - 1)
+    x = np.linspace(0.0, length, nx)
+    concentration = np.full(nx, initial_value, dtype=float)
+    concentration[0] = source_value
+
+    stability_limit = dx**2 / (2.0 * diffusion_coefficient)
+    if dt > stability_limit:
+        raise ValueError(
+            f"dt={dt} exceeds the diffusion stability limit for the current grid. "
+            f"Use dt <= {stability_limit:.6g}."
+        )
+
+    for _ in range(steps):
+        updated = concentration.copy()
+
+        for i in range(1, nx - 1):
+            diffusion_term = (
+                diffusion_coefficient
+                * (concentration[i + 1] - 2.0 * concentration[i] + concentration[i - 1])
+                / dx**2
+            )
+            clearance_term = (clearance_rate * concentration[i]) / (half_saturation + concentration[i])
+            updated[i] = concentration[i] + dt * (diffusion_term - clearance_term)
+
+        updated[0] = source_value
+        updated[-1] = updated[-2]
+        concentration = updated
+
+    return x, concentration
+
+
+def save_plot(x: np.ndarray, concentration: np.ndarray, output_path: str | Path) -> None:
+    """Plot the final concentration profile and save a PNG file."""
+    output_path = Path(output_path)
+    fig, ax = plt.subplots(figsize=(9, 5))
+    ax.plot(x * 1e4, concentration * 1e5, color="#1f3b88", linewidth=2.5)
+    ax.set_title("Spatial concentration profile", fontsize=12, fontweight="bold")
+    ax.set_xlabel("Distance from source boundary (µm)")
+    ax.set_ylabel("Concentration (a.u.)")
+    ax.grid(True, linestyle=":", linewidth=0.8, alpha=0.6)
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=200)
+    plt.close(fig)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Run the 1D transport model.")
+    parser.add_argument("--length", type=float, default=0.025, help="Domain length in cm.")
+    parser.add_argument("--nx", type=int, default=200, help="Number of spatial grid points.")
+    parser.add_argument(
+        "--diffusion",
+        type=float,
+        default=2.0e-5,
+        help="Diffusion coefficient in cm^2/s.",
+    )
+    parser.add_argument(
+        "--clearance-rate",
+        type=float,
+        default=1.2e-4,
+        help="Local clearance rate.",
+    )
+    parser.add_argument(
+        "--half-saturation",
+        type=float,
+        default=1.0e-6,
+        help="Half-saturation concentration.",
+    )
+    parser.add_argument(
+        "--source-value",
+        type=float,
+        default=6.5e-5,
+        help="Boundary concentration at the source edge.",
+    )
+    parser.add_argument("--dt", type=float, default=0.1, help="Time step size.")
+    parser.add_argument("--steps", type=int, default=2000, help="Number of time steps.")
+    parser.add_argument(
+        "--output",
+        type=str,
+        default="transport_profile.png",
+        help="Output path for the generated figure.",
+    )
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+
+    x, concentration = solve_transport(
+        length=args.length,
+        nx=args.nx,
+        diffusion_coefficient=args.diffusion,
+        clearance_rate=args.clearance_rate,
+        half_saturation=args.half_saturation,
+        source_value=args.source_value,
+        dt=args.dt,
+        steps=args.steps,
+    )
+
+    save_plot(x, concentration, args.output)
+    print(f"Saved profile figure to: {args.output}")
+
+
+if __name__ == "__main__":
+    main()
