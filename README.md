@@ -1,88 +1,95 @@
-# Advanced Mechanistic Ophthalmology: Retinal Oxygenation Model
+# Retinal Oxygenation Model
 
-A computational model for simulating oxygen transport and metabolic consumption in retinal tissue using a 1D reaction-diffusion framework. This project implements a finite-difference numerical solution to the time-dependent oxygen distribution field within a simplified retinal geometry.
+A reduced-order mathematical model for oxygen transport and metabolic consumption in retinal tissue. The system is formulated as a 1D reaction-diffusion equation and solved numerically using a finite-difference scheme.
 
-The model is designed to capture the interaction between tissue diffusion, oxygen supply from the choroidal boundary, metabolic consumption by retinal cells, and spatial gradients in oxygen tension relevant to ischemic or hypoxic conditions.
+The model is designed to represent the interaction between:
+
+- oxygen diffusion through retinal tissue,
+- oxygen delivery from the choroidal boundary,
+- cellular metabolic consumption,
+- spatial gradients in oxygen tension across the retinal depth.
 
 ## Why this project exists
 
-Retinal tissue is highly metabolically active and extremely sensitive to oxygen supply and local consumption imbalance. This model provides a mechanistic description of oxygen dynamics in a simplified retinal slice, allowing analysis of how oxygen concentration changes over depth and time.
+Retinal tissue is metabolically active and highly sensitive to local oxygen supply and consumption imbalance. This model provides a mechanistic description of oxygen dynamics in a simplified retinal domain.
 
-Rather than relying on purely statistical or empirical fits, this framework is based on a physics-informed system:
+Rather than relying on empirical fitting alone, the framework is based on a physically motivated system in which:
 
-- oxygen diffuses through tissue
-- oxygen is consumed by metabolic activity
-- boundary conditions reflect anatomical supply and geometric constraints
+- oxygen diffuses through the tissue,
+- oxygen is consumed by metabolic activity,
+- anatomical boundary conditions represent the supply and geometric constraints of the retina.
 
-This makes the model useful as a baseline for studying retinal oxygenation, hypoxia risk, and the influence of parameter changes on spatial oxygen profiles.
+This makes the model a useful baseline for investigating oxygenation patterns, hypoxic risk, and the effect of parameter variation on spatial oxygen profiles.
 
 ## Governing equation
 
-The oxygen concentration field C(x, t) is modelled using a nonlinear reaction-diffusion equation:
+The oxygen concentration field $C(x,t)$ is modeled using a nonlinear reaction-diffusion equation:
 
-\[
-\frac{\partial C}{\partial t} = D \frac{\partial^2 C}{\partial x^2} - \frac{V_{max} C}{K_m + C}
-\]
+$$
+\frac{\partial C}{\partial t}
+= D \frac{\partial^2 C}{\partial x^2}
+- \frac{V_{\max} C}{K_m + C}
+$$
 
 where:
 
-- C(x, t) is the local oxygen concentration
-- D is the diffusion coefficient
-- Vmax is the maximum metabolic consumption rate
-- Km is the Michaelis constant for oxygen-dependent consumption
+- $C(x,t)$ is the local oxygen concentration,
+- $D$ is the diffusion coefficient,
+- $V_{\max}$ is the maximum oxygen consumption rate,
+- $K_m$ is the Michaelis constant for oxygen-dependent consumption.
 
 ### Interpretation of the terms
 
-- dC/dt: local change in oxygen concentration over time
-- D * d^2C/dx^2: diffusion-driven redistribution of oxygen
-- (Vmax * C) / (Km + C): nonlinear oxygen consumption due to retinal metabolic activity
+- $\frac{\partial C}{\partial t}$: local temporal change in oxygen concentration,
+- $D \frac{\partial^2 C}{\partial x^2}$: diffusion-driven redistribution of oxygen,
+- $\frac{V_{\max} C}{K_m + C}$: nonlinear oxygen consumption due to retinal metabolic activity.
 
 ## Boundary conditions
 
-To represent the anatomical structure of the retinal domain, the model applies the following boundary constraints:
+The model imposes the following boundary conditions on the retinal domain:
 
-1. Choroidal boundary at x = 0
+1. Choroidal boundary at $x=0$
 
-   Oxygen is continuously supplied from the choroid:
+   Oxygen is supplied from the choroid:
 
-   \[
-   C(0, t) = C_{choroid}
-   \]
+   $$
+   C(0,t) = C_{\text{choroid}}
+   $$
 
-2. Inner retinal boundary at x = L
+2. Inner retinal boundary at $x=L$
 
    A zero-flux condition is imposed to represent a no-net-flow internal boundary:
 
-   \[
+   $$
    \left.\frac{\partial C}{\partial x}\right|_{x=L} = 0
-   \]
+   $$
 
-These conditions create a biologically informed setup in which oxygen enters from the outer support boundary and is consumed within the tissue.
+These conditions describe a biologically motivated setup in which oxygen enters from the outer supply boundary and is consumed within the tissue.
 
 ## Numerical method
 
-The simulation uses an explicit finite-difference scheme in a 1D spatial domain.
+The simulation uses an explicit finite-difference method on a 1D spatial grid.
 
-The time step is constrained by the stability requirement:
+The time step is constrained by the diffusion stability criterion:
 
-\[
-\Delta t \le \frac{\Delta x^2}{2D}
-\]
+$$
+\Delta t \le \frac{(\Delta x)^2}{2D}
+$$
 
-This ensures the explicit method remains numerically stable for the diffusion term.
+This ensures that the explicit scheme remains numerically stable for the diffusion term.
 
-The implementation updates the concentration field iteratively:
+At each time step, the implementation:
 
-- compute diffusion at each internal grid point
-- compute nonlinear metabolic consumption
-- advance the concentration in time
-- enforce boundary values at each iteration
+- computes diffusion at internal grid points,
+- evaluates the nonlinear metabolic consumption term,
+- advances the concentration field in time,
+- enforces the boundary values at each iteration.
 
 ## Repository contents
 
 This repository currently contains the core simulation logic in:
 
-- simulation.py — numerical solver, parameter setup, and visualization
+- `simulation.py` — numerical solver, parameter setup, and visualization
 
 ## Getting started
 
@@ -94,7 +101,7 @@ This project requires:
 - NumPy
 - Matplotlib
 
-Install the dependencies using:
+Install the dependencies with:
 
 ```bash
 pip install numpy matplotlib
@@ -108,17 +115,17 @@ From the repository root:
 python simulation.py
 ```
 
-This will generate a plot of the spatial oxygen profile across the retinal depth after the model reaches steady-state behaviour.
+This generates a spatial oxygen profile across retinal depth after the model approaches a steady state.
 
 ## Model parameters
 
 The current implementation uses a representative retinal slice with parameters such as:
 
-- domain length: L = 0.025 cm
-- diffusion coefficient: D = 2.0 x 10^-5 cm^2/s
-- max consumption rate: Vmax = 1.2 x 10^-4
-- Michaelis constant: Km = 1.0 x 10^-6
-- oxygen supply at choroid: C_choroid = 6.5 x 10^-5
+- domain length: $L = 0.025\,\text{cm}$
+- diffusion coefficient: $D = 2.0 \times 10^{-5}\,\text{cm}^2/\text{s}$
+- maximum consumption rate: $V_{\max} = 1.2 \times 10^{-4}$
+- Michaelis constant: $K_m = 1.0 \times 10^{-6}$
+- oxygen supply at the choroid: $C_{\text{choroid}} = 6.5 \times 10^{-5}$
 
 These values are intended as a biologically motivated baseline for exploring oxygen transport dynamics.
 
@@ -126,49 +133,49 @@ These values are intended as a biologically motivated baseline for exploring oxy
 
 The script produces a spatial concentration profile with:
 
-- x-axis: retinal depth from the choroid
-- y-axis: oxygen concentration
-- highlighted region: oxygen-sensitive inner retinal layer
+- x-axis: retinal depth from the choroid,
+- y-axis: oxygen concentration,
+- highlighted region: oxygen-sensitive inner retinal layer.
 
 This visualization is useful for qualitative inspection of:
 
-- oxygen gradients
-- consumption-driven depletion
-- relative hypoxia risk across the retinal depth
+- oxygen gradients,
+- consumption-driven depletion,
+- relative hypoxia risk across retinal depth.
 
 ## Assumptions and limitations
 
-This is a simplified mechanistic model and is intended as a conceptual and numerical framework, not a clinical or fully anatomical simulation. Current assumptions include:
+This is a simplified mechanistic model intended as a conceptual and numerical framework rather than a clinical or anatomically complete simulation. Current assumptions include:
 
-- 1D geometry only
-- homogeneous tissue properties
-- simplified retinal architecture
-- fixed boundary oxygen concentration
-- no vascular remodeling or dynamic blood flow effects
+- 1D geometry only,
+- homogeneous tissue properties,
+- simplified retinal architecture,
+- fixed boundary oxygen concentration,
+- no vascular remodeling or dynamic blood flow effects.
 
-These simplifications make the model interpretable and computationally efficient, while leaving room for future extensions.
+These simplifications make the model interpretable and computationally efficient while leaving room for future extensions.
 
 ## Potential extensions
 
 Possible future improvements include:
 
-- 2D/3D retinal geometry
-- time-varying oxygen supply
-- vascular regulation feedback
-- multi-layer retinal compartments
-- parameter sensitivity analysis
-- comparison against experimental oxygen data
+- 2D or 3D retinal geometry,
+- time-varying oxygen supply,
+- vascular regulation feedback,
+- multi-layer retinal compartments,
+- parameter sensitivity analysis,
+- comparison against experimental oxygen data.
 
 ## Summary
 
-This project implements a compact, mechanistic model of retinal oxygen dynamics governed by a nonlinear reaction-diffusion equation. It combines biological intuition, mathematical modeling, and numerical simulation to explore the spatial evolution of oxygen concentration within retinal tissue.
+This project implements a compact mechanistic model of retinal oxygen dynamics governed by a nonlinear reaction-diffusion equation. It combines biological intuition, mathematical modeling, and numerical simulation in a form suitable for studying retinal physiology and oxygen transport behavior.
 
-The current repo is a strong starting point for:
+The repository is a strong starting point for:
 
-- simulation-based retinal physiology studies
-- educational demonstrations of PDE modeling
-- computational biology prototyping
-- future extension into more clinically realistic tissue models
+- simulation-based retinal physiology studies,
+- educational demonstrations of PDE modeling,
+- computational biology prototyping,
+- future extension toward more clinically realistic tissue models.
 
 ## License
 
