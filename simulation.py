@@ -1,50 +1,140 @@
-import numpy as np
-import matplotlib.pyplot as plt
+# Vitreous Drug Clearance Kinetics
 
-# 1. Physical and Biological Parameters (Retinal Layer Dynamics)
-L = 0.025            # Total thickness of retina slice (cm) - approx 250 microns
-Nx = 50              # Number of spatial steps (grid resolution)
-dx = L / (Nx - 1)    # Spatial step size
-x = np.linspace(0, L, Nx)
+A compact, reproducible Python model for simulating drug transport and clearance in a simplified vitreous-like compartment. The project is designed as a transparent, minimal computational prototype for exploratory analysis, education, and future extension.
 
-D = 2.0e-5           # Diffusion coefficient of oxygen in tissue (cm^2/s)
-Vmax = 1.2e-4        # Max metabolic oxygen consumption rate (mL O2 / mL tissue / s)
-Km = 1.0e-6          # Michaelis constant (concentration at half-max consumption)
+## Overview
 
-# 2. Time Stepping Setup (Explicit Finite Difference Method)
-dt = 0.1             # Time step (seconds) - must satisfy stability criteria: dt < (dx^2)/(2D)
-Nt = 2000            # Total number of time iterations
+This repository implements a one-dimensional diffusion-clearance model using an explicit finite-difference scheme. The model evolves a concentration field over time and illustrates how local transport and elimination processes can be represented in a simple numerical framework.
 
-# 3. Boundary & Initial Conditions
-# Oxygen concentration (C) initialized to baseline everywhere
-C = np.ones(Nx) * 5.0e-5  
-C_choroid = 6.5e-5   # Fixed oxygen concentration at choroid border (x = 0)
+The code is intentionally readable and lightweight, with a small dependency footprint and no hidden infrastructure. It is suitable for:
 
-# 4. Numerical Solver for the Reaction-Diffusion PDE
-# ∂C/∂t = D*(∂²C/∂x²) - (Vmax*C)/(Km + C)
-for t in range(Nt):
-    C_new = C.copy()
-    
-    # Apply Finite Difference approximation for the inner tissue layers
-    for i in range(1, Nx - 1):
-        diffusion = D * (C[i+1] - 2*C[i] + C[i-1]) / (dx**2)
-        consumption = (Vmax * C[i]) / (Km + C[i])
-        C_new[i] = C[i] + dt * (diffusion - consumption)
-        
-    # Enforce Ocular Anatomy Boundaries
-    C_new[0] = C_choroid              # Choroid supply boundary condition
-    C_new[-1] = C_new[-2]             # Inner retinal boundary (zero-flux mirror condition)
-    
-    C = C_new
+- teaching numerical methods,
+- prototyping transport models,
+- parameter sensitivity exploration,
+- building a baseline for more detailed ocular pharmacokinetic studies.
 
-# 5. Plot the Spatial Calculus Output
-plt.figure(figsize=(9, 5))
-plt.plot(x * 10000, C * 1e5, color='crimson', linewidth=2.5, label='Steady-State Oxygen Profile')
-plt.title('Mathematical Ophthalmology: 1D Retinal Oxygenation PDE Model', fontsize=12, fontweight='bold')
-plt.xlabel('Retinal Depth from Choroid Base (Microns / μm)')
-plt.ylabel('Oxygen Concentration (Arbitrary Partial Pressure Units)')
-plt.grid(True, linestyle=':', alpha=0.6)
-plt.axvspan(180, 250, color='gray', alpha=0.15, label='Inner Retinal Layer (Hypoxia Vulnerability)')
-plt.legend(loc='upper right')
+## Why this project exists
 
-plt.show()
+Many scientific code repositories are difficult to run, reproduce, or extend because the implementation is opaque or overengineered. This project takes the opposite approach: a minimal yet credible simulation that is easy to inspect, modify, and adapt.
+
+The goal is not to claim a clinically validated physiological model. Instead, it provides a clean computational foundation for studying the interplay between:
+
+- spatial diffusion,
+- boundary conditions,
+- local clearance dynamics,
+- temporal evolution of concentration profiles.
+
+## Scientific formulation
+
+The model tracks the concentration field $C(x, t)$ in a 1D domain and updates it with a finite-difference approximation of a diffusion-clearance equation:
+
+$$
+\frac{\partial C}{\partial t} = D \frac{\partial^2 C}{\partial x^2} - k_{\mathrm{clear}} C
+$$
+
+where:
+
+- $C(x, t)$ is the concentration at position $x$ and time $t$
+- $D$ is the effective diffusion coefficient
+- $k_{\mathrm{clear}}$ is the first-order clearance rate
+
+The numerical update is implemented explicitly as:
+
+$$
+C_i^{n+1} = C_i^n + \Delta t \left(D\frac{C_{i+1}^n - 2C_i^n + C_{i-1}^n}{\Delta x^2} - k_{\mathrm{clear}} C_i^n\right)
+$$
+
+This is a standard, easy-to-interpret finite-difference scheme suitable for a compact baseline model.
+
+## Repository structure
+
+- `simulation.py` — main numerical solver and plotting routine
+- `requirements.txt` — dependency list
+- `LICENSE` — MIT license
+- `.gitignore` — standard Python exclusions
+
+## Installation
+
+This project requires Python 3.9+.
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+## Running the simulation
+
+From the repository root:
+
+```bash
+python simulation.py
+```
+
+The script runs the model and writes a plot to:
+
+```text
+vitreous_clearance_profile.png
+```
+
+You can also customize the simulation via command-line options:
+
+```bash
+python simulation.py --nx 300 --dt 0.05 --steps 3000 --output profile.png
+```
+
+## Model assumptions
+
+This implementation is deliberately simplified. It is intended as a transparent prototype rather than a clinical or anatomically detailed model. Current assumptions include:
+
+- one-dimensional spatial domain,
+- homogeneous effective transport properties,
+- simple boundary conditions,
+- constant diffusion and clearance parameters,
+- no coupled physiological feedback or compartmental structure.
+
+These choices make the model interpretable and easy to extend.
+
+## Parameter defaults
+
+The default configuration is designed to behave stably and produce a smooth concentration profile:
+
+| Parameter | Value | Meaning |
+| --- | ---: | --- |
+| `length` | 0.025 cm | domain length |
+| `nx` | 200 | number of grid points |
+| `diffusion_coefficient` | 2.0e-5 | effective diffusion coefficient |
+| `clearance_rate` | 1.2e-4 | first-order local clearance |
+| `source_value` | 6.5e-5 | concentration at the source boundary |
+| `dt` | 0.1 | explicit time step |
+| `steps` | 2000 | number of time steps |
+
+## Example output
+
+The script produces a spatial concentration profile showing the evolution from a boundary-driven source toward a smoother, lower concentration distribution over time.
+
+This output is useful for:
+
+- checking numerical stability,
+- visualizing spatial gradients,
+- comparing parameter choices,
+- developing more advanced transport models.
+
+## Extending the project
+
+This code is structured to make future improvements straightforward, such as:
+
+- parameter sweeps,
+- alternative boundary conditions,
+- nonlinear clearance terms,
+- multi-compartment formulations,
+- validation against experimental data,
+- more advanced finite-difference or finite-volume methods.
+
+## Contributing
+
+Contributions are welcome. If you are improving the numerical method, adding validation, or extending the model, please open an issue or submit a pull request.
+
+## License
+
+This project is licensed under the MIT License. See the `LICENSE` file for details.

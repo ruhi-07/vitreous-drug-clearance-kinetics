@@ -1,8 +1,8 @@
-"""Minimal 1D transport model for an ocular tissue-like domain.
+"""Minimal 1D diffusion-clearance model for a simplified vitreous-like domain.
 
-This script solves a simplified diffusion/clearance problem in a single spatial
-coordinate. The implementation is intentionally compact and readable so it can be
-used as a baseline for further scientific or educational development.
+This script solves a straightforward transport problem using an explicit
+finite-difference method. The implementation is intentionally transparent,
+compact, and easy to modify for exploratory modeling work.
 """
 
 from __future__ import annotations
@@ -19,13 +19,12 @@ def solve_transport(
     nx: int = 200,
     diffusion_coefficient: float = 2.0e-5,
     clearance_rate: float = 1.2e-4,
-    half_saturation: float = 1.0e-6,
     source_value: float = 6.5e-5,
     dt: float = 0.1,
     steps: int = 2000,
     initial_value: float = 5.0e-5,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Advance a concentration field in time using an explicit finite-difference scheme."""
+    """Advance the concentration field in time using an explicit finite-difference scheme."""
     if nx < 3:
         raise ValueError("nx must be at least 3 to include interior points.")
 
@@ -37,7 +36,7 @@ def solve_transport(
     stability_limit = dx**2 / (2.0 * diffusion_coefficient)
     if dt > stability_limit:
         raise ValueError(
-            f"dt={dt} exceeds the diffusion stability limit for the current grid. "
+            f"dt={dt} exceeds the diffusion stability limit for this grid. "
             f"Use dt <= {stability_limit:.6g}."
         )
 
@@ -50,7 +49,7 @@ def solve_transport(
                 * (concentration[i + 1] - 2.0 * concentration[i] + concentration[i - 1])
                 / dx**2
             )
-            clearance_term = (clearance_rate * concentration[i]) / (half_saturation + concentration[i])
+            clearance_term = clearance_rate * concentration[i]
             updated[i] = concentration[i] + dt * (diffusion_term - clearance_term)
 
         updated[0] = source_value
@@ -61,7 +60,7 @@ def solve_transport(
 
 
 def save_plot(x: np.ndarray, concentration: np.ndarray, output_path: str | Path) -> None:
-    """Plot the final concentration profile and save a PNG file."""
+    """Plot the final concentration profile and save it as a PNG image."""
     output_path = Path(output_path)
     fig, ax = plt.subplots(figsize=(9, 5))
     ax.plot(x * 1e4, concentration * 1e5, color="#1f3b88", linewidth=2.5)
@@ -75,26 +74,20 @@ def save_plot(x: np.ndarray, concentration: np.ndarray, output_path: str | Path)
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run the 1D transport model.")
+    parser = argparse.ArgumentParser(description="Run the 1D diffusion-clearance model.")
     parser.add_argument("--length", type=float, default=0.025, help="Domain length in cm.")
     parser.add_argument("--nx", type=int, default=200, help="Number of spatial grid points.")
     parser.add_argument(
         "--diffusion",
         type=float,
         default=2.0e-5,
-        help="Diffusion coefficient in cm^2/s.",
+        help="Effective diffusion coefficient in cm^2/s.",
     )
     parser.add_argument(
         "--clearance-rate",
         type=float,
         default=1.2e-4,
-        help="Local clearance rate.",
-    )
-    parser.add_argument(
-        "--half-saturation",
-        type=float,
-        default=1.0e-6,
-        help="Half-saturation concentration.",
+        help="First-order clearance rate.",
     )
     parser.add_argument(
         "--source-value",
@@ -107,7 +100,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output",
         type=str,
-        default="transport_profile.png",
+        default="vitreous_clearance_profile.png",
         help="Output path for the generated figure.",
     )
     return parser.parse_args()
@@ -121,7 +114,6 @@ def main() -> None:
         nx=args.nx,
         diffusion_coefficient=args.diffusion,
         clearance_rate=args.clearance_rate,
-        half_saturation=args.half_saturation,
         source_value=args.source_value,
         dt=args.dt,
         steps=args.steps,
